@@ -30,6 +30,7 @@ sequenceDiagram
 ## Demo
 
 ```sh
+[ ! -f .env ] && cp .env.example .env
 yarn && yarn test
 ```
 
