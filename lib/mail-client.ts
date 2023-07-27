@@ -1,5 +1,10 @@
 import { simpleParser } from "mailparser"
-import type { AddressObject, ParsedMail } from "mailparser"
+import type {
+  AddressObject,
+  HeaderValue,
+  Headers,
+  ParsedMail,
+} from "mailparser"
 import { nanoid } from "nanoid"
 import { EventEmitter } from "node:events"
 import WebSocket from "ws"
@@ -21,12 +26,48 @@ const objectToAddress = (object: AddressObject) => object.value[0].address || ""
 const createEmail = (parsed: ParsedMail) => {
   const to = parsed.to ? [parsed.to].flat().map(objectToAddress) : []
   const from = parsed.from ? [parsed.from].flat().map(objectToAddress)[0] : ""
+
+  const getCustomProp = (
+    key: string,
+    val: HeaderValue,
+    props: Record<string, string>
+  ) => {
+    const normalised = key.toLowerCase()
+    if (!normalised.startsWith("x-mailtest-prop-")) return
+
+    const propName = normalised.replace("x-mailtest-prop-", "")
+    if (!propName) return
+
+    if (parsed.hasOwnProperty(propName) || props.hasOwnProperty(propName)) {
+      console.log("WARNING! Duplicate prop detected - skipping:", key)
+      return
+    }
+
+    if (typeof val !== "string") {
+      console.log(
+        `WARNING! Skipping prop ${propName}, expected string, got '${typeof val}'`
+      )
+      return
+    }
+
+    return { [propName]: val }
+  }
+
+  const getCustomProps = (headers: Headers) =>
+    [...headers].reduce(
+      (obj, [key, val]) => ({ ...obj, ...getCustomProp(key, val, obj) }),
+      {} as Record<string, string>
+    )
+
+  const customProps = getCustomProps(parsed.headers)
+
   return {
     subject: parsed.subject || "",
     to,
     from,
     html: parsed.html || "",
     text: parsed.text ?? "",
+    ...customProps,
   }
 }
 
