@@ -2,6 +2,15 @@ import type { Reporter, TestCase, TestResult } from "@playwright/test/reporter"
 import { cwd } from "node:process"
 import path from "path"
 
+const printTotal = () => {
+  const totalReceived =
+    Number(process.env.MAILTEST_PARALLEL_TEST_FILES) *
+    Number(process.env.MAILTEST_LOOPS_PER_TEST) *
+    Number(process.env.MAILTEST_EMAILS_PER_LOOP)
+
+  console.log("\nTotal emails received:", totalReceived)
+}
+
 class MyReporter implements Reporter {
   failures: ReturnType<typeof this.buildFailureInfo>[] = []
 
@@ -51,8 +60,10 @@ class MyReporter implements Reporter {
 
     if (!this.failures.length) {
       logSuccess("  All passed!")
+      printTotal()
       return
     }
+
     logFail(`${spaces(2)}${this.failures.length} failed due to emails`)
     this.failures.forEach((fail) => {
       logFail(`${spaces(4)}[${fail.suite}] › ${fail.location} › ${fail.title}`)
