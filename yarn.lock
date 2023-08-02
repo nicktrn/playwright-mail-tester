@@ -139,7 +139,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
+"@types/node@npm:*, @types/node@npm:^20.4.5":
   version: 20.4.5
   resolution: "@types/node@npm:20.4.5"
   checksum: 36a0304a8dc346a1b2d2edac4c4633eecf70875793d61a5274d0df052d7a7af7a8e34f29884eac4fbd094c4f0201477dcb39c0ecd3307ca141688806538d1138
@@ -1249,6 +1249,7 @@ __metadata:
   dependencies:
     "@playwright/test": ^1.36.1
     "@types/mailparser": ^3.4.0
+    "@types/node": ^20.4.5
     "@types/smtp-server": ^3.5.7
     "@types/ws": ^8.5.5
     dotenv: ^16.3.1
