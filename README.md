@@ -34,7 +34,11 @@ sequenceDiagram
 yarn && yarn test
 ```
 
-Optional: adjust workers with `--workers <number>` flag.
+Optional:
+
+- adjust workers with the `--workers <number>` flag
+- set `DEBUG=1` for a nice wall of text (and useful debugging info)
+- change `SMTP_SERVER_PORT` to avoid collisions
 
 ## Built with
 
