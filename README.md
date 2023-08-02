@@ -34,6 +34,8 @@ sequenceDiagram
 yarn && yarn test
 ```
 
+Optional: adjust workers with `--workers <number>` flag.
+
 ## Built with
 
 - [mailparser](https://github.com/nodemailer/mailparser)
