@@ -1,11 +1,10 @@
 import { nanoid } from "nanoid"
 import fs from "node:fs"
 
-export const getParallelNamespace = () =>
-  `${process.env.TEST_WORKER_INDEX}-${process.env.TEST_PARALLEL_INDEX}`
+export const parallelWorkerNamespace = `${process.env.TEST_WORKER_INDEX}-${process.env.TEST_PARALLEL_INDEX}`
 
 export const generateNamespacedEmailAddress = () =>
-  `${getParallelNamespace()}-${nanoid()}@example.com`
+  `${parallelWorkerNamespace}-${nanoid()}@example.com`
 
 export const createTestFiles = (num: number) => {
   if (process.env.TEST_WORKER_INDEX) return // only run on init

@@ -5,14 +5,14 @@ import escapeStringRegexp from "escape-string-regexp"
 import MailClient from "../lib/mail-client"
 import {
   generateNamespacedEmailAddress,
-  getParallelNamespace,
+  parallelWorkerNamespace,
 } from "../lib/utils"
 
 const DEFAULT_EMAIL_TIMEOUT = 5000
 
 export class EmailsFixture {
   constructor(page: Page, namespaced = true) {
-    this.namespace = getParallelNamespace()
+    this.namespace = parallelWorkerNamespace
     this.mailClient = new MailClient(namespaced ? this.namespace : "")
     this.page = page
   }
