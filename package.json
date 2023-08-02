@@ -2,14 +2,13 @@
   "name": "playwright-mail-client",
   "version": "0.0.1",
   "private": true,
-  "devDependencies": {
-    "@playwright/test": "^1.36.1"
-  },
+  "packageManager": "yarn@3.6.1",
   "scripts": {
     "test": "playwright test",
     "mail-server": "ts-node start-mail-server.ts"
   },
   "dependencies": {
+    "@playwright/test": "^1.36.1",
     "@types/mailparser": "^3.4.0",
     "@types/smtp-server": "^3.5.7",
     "@types/ws": "^8.5.5",
