@@ -36,6 +36,18 @@ for (let i = 1; i <= loops; i++) {
     await emails.waitForOne("fail@example.com", { timeout: 1_000 })
   })
 
+  test.skip(`waitForOneWithCustomProp-${i}`, async ({ emails }) => {
+    const to = emails.generateAddress()
+
+    // string param - recipient address only
+    await sendMail({ to })
+    await emails.getOne(to)
+
+    // object param - with custom prop filter
+    await sendMail({ to })
+    await emails.getOne({ to, foo: "bar" })
+  })
+
   test(`waitForMany-${i}`, async ({ emails }, testInfo) => {
     const toMany = Array(emailsPerLoop)
       .fill(null)

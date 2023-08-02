@@ -27,6 +27,11 @@ export class EmailsFixture {
 
   generateAddress = () => generateNamespacedEmailAddress()
 
+  getOne = (
+    opts: string | Record<string, string>,
+    { timeout = DEFAULT_EMAIL_TIMEOUT } = {}
+  ) => this.mailClient.getOne(opts, { timeout })
+
   waitForOne = async (
     recipient: string,
     { timeout = DEFAULT_EMAIL_TIMEOUT } = {}

@@ -21,9 +21,21 @@ if (isNaN(SMTP_SERVER_PORT)) {
 
 const WS_SERVER_PORT = SMTP_SERVER_PORT + 1
 
+type CustomProps = {
+  [propName: string]: any
+}
+
+type Email = {
+  subject: string
+  to: string[]
+  from: string
+  html: string
+  text: string
+} & CustomProps
+
 const objectToAddress = (object: AddressObject) => object.value[0].address || ""
 
-const createEmail = (parsed: ParsedMail) => {
+const createEmail = (parsed: ParsedMail): Email => {
   const to = parsed.to ? [parsed.to].flat().map(objectToAddress) : []
   const from = parsed.from ? [parsed.from].flat().map(objectToAddress)[0] : ""
 
@@ -56,7 +68,7 @@ const createEmail = (parsed: ParsedMail) => {
   const getCustomProps = (headers: Headers) =>
     [...headers].reduce(
       (obj, [key, val]) => ({ ...obj, ...getCustomProp(key, val, obj) }),
-      {} as Record<string, string>
+      {} as CustomProps
     )
 
   const customProps = getCustomProps(parsed.headers)
@@ -71,11 +83,10 @@ const createEmail = (parsed: ParsedMail) => {
   }
 }
 
-type Email = ReturnType<typeof createEmail>
-
 class MailClient extends EventEmitter {
   private ws: WebSocket | null = null
   private emails = new Map<string, Email>()
+  private gotMail = Symbol()
   private id = nanoid()
   private namespace: string
 
@@ -108,6 +119,7 @@ class MailClient extends EventEmitter {
         }
         this.emails.set(recipient, email)
         this.emit(recipient, email)
+        this.emit(this.gotMail, email)
       })
     })
   }
@@ -120,6 +132,58 @@ class MailClient extends EventEmitter {
     })
   }
 
+  getOne(opts: string | Record<string, string>, { timeout = 5000 } = {}) {
+    return new Promise((resolve, reject) => {
+      const filter = typeof opts === "string" ? { to: opts } : opts
+
+      const passesFilters = (email: Email) =>
+        Object.keys(filter).every((key) => {
+          if (key === "to") {
+            return email[key].includes(filter[key])
+          } else {
+            return email[key] === filter[key]
+          }
+        })
+
+      for (const [recipient, email] of this.emails) {
+        if (passesFilters(email)) {
+          this.emails.delete(recipient)
+          return resolve(email)
+        }
+      }
+
+      const onEmail = (
+        email: Email,
+        timeoutId?: Parameters<typeof clearTimeout>[0]
+      ) => {
+        if (passesFilters(email)) {
+          this.removeAllListeners(this.gotMail)
+          if (typeof timeoutId !== "undefined") {
+            clearTimeout(timeoutId)
+          }
+          resolve(email)
+        }
+      }
+
+      // wait forever
+      if (timeout === 0) {
+        this.on(this.gotMail, onEmail)
+        return
+      }
+
+      const timeoutId = setTimeout(() => {
+        this.removeListener(this.gotMail, onEmail)
+        reject(`No email for ${filter}`)
+      }, timeout)
+
+      const onEmailWithTimeout = (email: Email) => {
+        onEmail(email, timeoutId)
+      }
+
+      this.on(this.gotMail, onEmailWithTimeout)
+    })
+  }
+
   waitForEmail(recipient: string, { timeout = 0 } = {}): Promise<Email> {
     return new Promise((resolve, reject) => {
       if (this.emails.has(recipient)) {
@@ -128,28 +192,28 @@ class MailClient extends EventEmitter {
         return resolve(email)
       }
 
-      const onEmail = (email: Email) => {
+      const onRecipient = (email: Email) => {
         this.removeAllListeners(recipient)
         resolve(email)
       }
 
       // wait forever
       if (timeout === 0) {
-        this.on(recipient, onEmail)
+        this.on(recipient, onRecipient)
         return
       }
 
       const timeoutId = setTimeout(() => {
-        this.removeListener(recipient, onEmail)
+        this.removeListener(recipient, onRecipient)
         reject(`No email for ${recipient}`)
       }, timeout)
 
-      const onEmailWithTimeout = (email: Email) => {
+      const onRecipientWithTimeout = (email: Email) => {
         clearTimeout(timeoutId)
-        onEmail(email)
+        onRecipient(email)
       }
 
-      this.on(recipient, onEmailWithTimeout)
+      this.on(recipient, onRecipientWithTimeout)
     })
   }
 
