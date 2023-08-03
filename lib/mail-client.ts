@@ -8,6 +8,7 @@ import type {
 import { nanoid } from "nanoid"
 import { EventEmitter } from "node:events"
 import WebSocket from "ws"
+import { NamespaceMode } from "./mail-server"
 
 if (!process.env.SMTP_SERVER_PORT) {
   throw new Error(
@@ -89,6 +90,7 @@ class MailClient extends EventEmitter {
   private gotMail = Symbol()
   private id = nanoid()
   private namespace: string
+  private mode: string
 
   private debug = (...args: Parameters<typeof console.log>) => {
     if (process.env.DEBUG) {
@@ -96,14 +98,15 @@ class MailClient extends EventEmitter {
     }
   }
 
-  constructor(namespace?: string) {
+  constructor(namespace?: string, mode?: NamespaceMode) {
     super()
     this.namespace = namespace ?? ""
+    this.mode = mode ?? ""
   }
 
   start() {
     this.ws = new WebSocket(
-      `ws://localhost:${WS_SERVER_PORT}/?id=${this.id}&ns=${this.namespace}`
+      `ws://localhost:${WS_SERVER_PORT}/?id=${this.id}&ns=${this.namespace}&mode=${this.mode}`
     )
 
     this.ws.on("error", console.error)

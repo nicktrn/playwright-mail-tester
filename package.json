@@ -8,6 +8,7 @@
     "mail-server": "ts-node start-mail-server.ts"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.0.2",
     "@playwright/test": "^1.36.1",
     "@types/mailparser": "^3.4.0",
     "@types/node": "^20.4.5",

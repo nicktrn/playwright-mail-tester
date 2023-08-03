@@ -7,25 +7,29 @@ import {
   generateNamespacedEmailAddress,
   parallelWorkerNamespace,
 } from "../lib/utils"
+import { DEFAULT_NAMESPACE_MODE, NamespaceMode } from "../lib/mail-server"
 
 const DEFAULT_EMAIL_TIMEOUT = 5000
 
 export class EmailsFixture {
-  constructor(page: Page, namespaced = true) {
-    this.namespace = parallelWorkerNamespace
-    this.mailClient = new MailClient(namespaced ? this.namespace : "")
+  constructor(page: Page, namespaced = true, mode?: NamespaceMode) {
+    this.namespace = namespaced ? parallelWorkerNamespace : ""
+    this.namespaceMode = mode ?? DEFAULT_NAMESPACE_MODE
+    this.mailClient = new MailClient(this.namespace, this.namespaceMode)
     this.page = page
   }
 
   private mailClient: MailClient
   private namespace: string
+  private namespaceMode: NamespaceMode
   private page: Page
 
   connect = async () => this.mailClient.start()
 
   disconnect = async () => this.mailClient.stop()
 
-  generateAddress = () => generateNamespacedEmailAddress()
+  generateAddress = () =>
+    generateNamespacedEmailAddress(this.namespaceMode).toLowerCase()
 
   getOne = (
     opts: string | Record<string, string>,
