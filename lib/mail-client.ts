@@ -133,7 +133,15 @@ class MailClient extends EventEmitter {
     })
   }
 
-  getOne(opts: string | EmailFilter, { timeout = 5000 } = {}): Promise<Email> {
+  waitForEmail(
+    opts: string | EmailFilter,
+    { timeout = 5000 } = {}
+  ): Promise<Email> {
+    // use faster pathway when filtering by recipient only
+    if (opts === "string") {
+      return this.waitForEmailByRecipient(opts, { timeout })
+    }
+
     return new Promise((resolve, reject) => {
       const filter = typeof opts === "string" ? { to: opts } : opts
 
@@ -190,7 +198,10 @@ class MailClient extends EventEmitter {
     })
   }
 
-  waitForEmail(recipient: string, { timeout = 0 } = {}): Promise<Email> {
+  private waitForEmailByRecipient(
+    recipient: string,
+    { timeout = 0 } = {}
+  ): Promise<Email> {
     return new Promise((resolve, reject) => {
       if (this.emails.has(recipient)) {
         const email = this.emails.get(recipient) as Email
@@ -221,12 +232,6 @@ class MailClient extends EventEmitter {
 
       this.on(recipient, onRecipientWithTimeout)
     })
-  }
-
-  waitForEmails(recipients: string[], { timeout = 0 } = {}) {
-    return Promise.all(
-      recipients.map((recipient) => this.waitForEmail(recipient, { timeout }))
-    )
   }
 }
 

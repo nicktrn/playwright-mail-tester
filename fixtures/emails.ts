@@ -45,7 +45,7 @@ export class EmailsFixture {
     opts: string | Record<string, string>,
     { timeout = DEFAULT_TIMEOUT } = {}
   ) => {
-    const email = await this.mailClient.getOne(opts, { timeout })
+    const email = await this.mailClient.waitForEmail(opts, { timeout })
     let hasBeenOpened = false
 
     const getCallToAction = () => {
