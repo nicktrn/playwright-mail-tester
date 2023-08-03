@@ -58,4 +58,16 @@ for (let i = 1; i <= loops; i++) {
 
     await emails.waitForMany(toMany)
   })
+
+  test.skip(`waitForManyWithCustomProp-${i}`, async ({ emails }, testInfo) => {
+    const toMany = Array(emailsPerLoop)
+      .fill(null)
+      .map(() => emails.generateAddress())
+    const subject = testInfo.titlePath.join(" ")
+
+    Promise.all(toMany.map((to) => sendMail({ to, subject }))) // wait for successful sends
+    // toMany.forEach((to) => sendMail({ to, subject })) // send in background
+
+    await emails.waitForMany(toMany.map((to) => ({ to, foo: "bar" })))
+  })
 }

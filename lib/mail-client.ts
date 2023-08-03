@@ -17,6 +17,8 @@ if (isNaN(SMTP_SERVER_PORT)) {
 
 const WS_SERVER_PORT = SMTP_SERVER_PORT + 1
 
+export type EmailFilter = Partial<Record<string, string>>
+
 type CustomProps = {
   [propName: string]: unknown
 }
@@ -93,6 +95,7 @@ class MailClient extends EventEmitter {
     super()
     this.namespace = namespace ?? ""
     this.mode = mode ?? ""
+    this.setMaxListeners(100)
   }
 
   start() {
@@ -130,17 +133,14 @@ class MailClient extends EventEmitter {
     })
   }
 
-  getOne(
-    opts: string | Record<string, string>,
-    { timeout = 5000 } = {}
-  ): Promise<Email> {
+  getOne(opts: string | EmailFilter, { timeout = 5000 } = {}): Promise<Email> {
     return new Promise((resolve, reject) => {
       const filter = typeof opts === "string" ? { to: opts } : opts
 
       const passesFilters = (email: Email) =>
         Object.keys(filter).every((key) => {
           if (key === "to") {
-            return email[key].includes(filter[key])
+            return email[key].includes(filter[key] ?? "")
           } else {
             return email[key] === filter[key]
           }
@@ -158,9 +158,11 @@ class MailClient extends EventEmitter {
         timeoutId?: Parameters<typeof clearTimeout>[0]
       ) => {
         if (passesFilters(email)) {
-          this.removeAllListeners(this.gotMail)
-          if (typeof timeoutId !== "undefined") {
+          if (timeoutId) {
+            this.removeListener(this.gotMail, onEmailWithTimeout)
             clearTimeout(timeoutId)
+          } else {
+            this.removeListener(this.gotMail, onEmail)
           }
           resolve(email)
         }
@@ -174,7 +176,10 @@ class MailClient extends EventEmitter {
 
       const timeoutId = setTimeout(() => {
         this.removeListener(this.gotMail, onEmail)
-        reject(`No email for ${filter}`)
+        const { to, ...rest } = filter
+        const restOutput =
+          Object.keys(rest).length === 0 ? "" : `${JSON.stringify(rest)} `
+        reject(`No email for ${restOutput}${to ?? "ANY"}`)
       }, timeout)
 
       const onEmailWithTimeout = (email: Email) => {

@@ -85,10 +85,10 @@ export class EmailsFixture {
   }
 
   // FIXME: improve error output for multiple failed emails (allSettled)
-  waitForMany = (recipients: string[], { timeout = DEFAULT_TIMEOUT } = {}) =>
-    Promise.all(
-      recipients.map((recipient) => this.waitForOne(recipient, { timeout }))
-    )
+  waitForMany = (
+    opts: (string | Record<string, string>)[],
+    { timeout = DEFAULT_TIMEOUT } = {}
+  ) => Promise.all(opts.map((opts) => this.waitForOne(opts, { timeout })))
 }
 
 export const createEmailsFixture = (
