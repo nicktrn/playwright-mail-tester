@@ -1,15 +1,25 @@
+import { faker } from "@faker-js/faker"
 import { expect } from "@playwright/test"
 import type { Page } from "@playwright/test"
 import escapeStringRegexp from "escape-string-regexp"
 
 import MailClient from "../lib/mail-client"
-import {
-  generateNamespacedEmailAddress,
-  parallelWorkerNamespace,
-} from "../lib/utils"
 import { DEFAULT_NAMESPACE_MODE, NamespaceMode } from "../lib/mail-server"
 
 const DEFAULT_EMAIL_TIMEOUT = 5000
+
+export const parallelWorkerNamespace = `${process.env.TEST_WORKER_INDEX}-${process.env.TEST_PARALLEL_INDEX}`
+
+export const generateNamespacedEmailAddress = (mode: NamespaceMode) => {
+  switch (mode) {
+    case "prepend":
+      return `${parallelWorkerNamespace}${faker.internet.email()}`
+    case "subdomain":
+      return faker.internet.email({
+        provider: `${parallelWorkerNamespace}.${faker.internet.domainName()}`,
+      })
+  }
+}
 
 export class EmailsFixture {
   constructor(page: Page, namespaced = true, mode?: NamespaceMode) {

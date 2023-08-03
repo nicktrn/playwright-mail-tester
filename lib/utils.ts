@@ -1,19 +1,4 @@
 import fs from "node:fs"
-import { NamespaceMode } from "./mail-server"
-import { faker } from "@faker-js/faker"
-
-export const parallelWorkerNamespace = `${process.env.TEST_WORKER_INDEX}-${process.env.TEST_PARALLEL_INDEX}`
-
-export const generateNamespacedEmailAddress = (mode: NamespaceMode) => {
-  switch (mode) {
-    case "prepend":
-      return `${parallelWorkerNamespace}${faker.internet.email()}`
-    case "subdomain":
-      return faker.internet.email({
-        provider: `${parallelWorkerNamespace}.${faker.internet.domainName()}`,
-      })
-  }
-}
 
 export const createTestFiles = (num: number) => {
   if (process.env.TEST_WORKER_INDEX) return // only run on init
