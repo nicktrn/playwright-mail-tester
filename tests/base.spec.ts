@@ -27,8 +27,7 @@ for (let i = 1; i <= loops; i++) {
     sendMail({ to, subject })
 
     const email = await emails.waitForOne(to)
-    await email.open()
-    await email.getCallToAction().click()
+    await email.clickCta()
   })
 
   test.skip(`failOne-${i}`, async ({ emails }) => {
