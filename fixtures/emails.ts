@@ -4,9 +4,8 @@ import type { Page } from "@playwright/test"
 import escapeStringRegexp from "escape-string-regexp"
 
 import MailClient from "../lib/mail-client"
-import { DEFAULT_NAMESPACE_MODE, NamespaceMode } from "../lib/mail-server"
-
-const DEFAULT_TIMEOUT = 5000
+import type { NamespaceMode } from "../lib/mail-server"
+import { DEFAULT_NAMESPACE_MODE } from "../lib/mail-server"
 
 export const parallelWorkerNamespace = `${process.env.TEST_WORKER_INDEX}-${process.env.TEST_PARALLEL_INDEX}`
 
@@ -20,6 +19,8 @@ export const generateNamespacedEmailAddress = (mode: NamespaceMode) => {
       })
   }
 }
+
+const DEFAULT_TIMEOUT = 5000
 
 export class EmailsFixture {
   constructor(page: Page, namespaced = true, mode?: NamespaceMode) {
@@ -40,17 +41,11 @@ export class EmailsFixture {
   generateAddress = () =>
     generateNamespacedEmailAddress(this.namespaceMode).toLowerCase()
 
-  getOne = (
+  waitForOne = async (
     opts: string | Record<string, string>,
     { timeout = DEFAULT_TIMEOUT } = {}
-  ) => this.mailClient.getOne(opts, { timeout })
-
-  waitForOne = async (
-    recipient: string,
-    { timeout = DEFAULT_TIMEOUT } = {}
   ) => {
-    // TODO: ability to search for more than just recipient
-    const email = await this.mailClient.waitForEmail(recipient, { timeout })
+    const email = await this.mailClient.getOne(opts, { timeout })
     let hasBeenOpened = false
 
     const getCallToAction = () => {

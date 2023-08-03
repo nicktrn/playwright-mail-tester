@@ -10,11 +10,6 @@ import { EventEmitter } from "node:events"
 import WebSocket from "ws"
 import { NamespaceMode } from "./mail-server"
 
-if (!process.env.SMTP_SERVER_PORT) {
-  throw new Error(
-    "SMTP_SERVER_PORT env var is required to start test mail server."
-  )
-}
 const SMTP_SERVER_PORT = Number(process.env.SMTP_SERVER_PORT)
 if (isNaN(SMTP_SERVER_PORT)) {
   throw new Error("SMTP_SERVER_PORT env var needs to be a number.")
@@ -23,7 +18,7 @@ if (isNaN(SMTP_SERVER_PORT)) {
 const WS_SERVER_PORT = SMTP_SERVER_PORT + 1
 
 type CustomProps = {
-  [propName: string]: any
+  [propName: string]: unknown
 }
 
 type Email = {
@@ -40,11 +35,7 @@ const createEmail = (parsed: ParsedMail): Email => {
   const to = parsed.to ? [parsed.to].flat().map(objectToAddress) : []
   const from = parsed.from ? [parsed.from].flat().map(objectToAddress)[0] : ""
 
-  const getCustomProp = (
-    key: string,
-    val: HeaderValue,
-    props: Record<string, string>
-  ) => {
+  const getCustomProp = (key: string, val: HeaderValue, props: CustomProps) => {
     const normalised = key.toLowerCase()
     if (!normalised.startsWith("x-mailtest-prop-")) return
 
@@ -67,7 +58,7 @@ const createEmail = (parsed: ParsedMail): Email => {
   }
 
   const getCustomProps = (headers: Headers) =>
-    [...headers].reduce(
+    Array.from(headers).reduce(
       (obj, [key, val]) => ({ ...obj, ...getCustomProp(key, val, obj) }),
       {} as CustomProps
     )
@@ -139,7 +130,10 @@ class MailClient extends EventEmitter {
     })
   }
 
-  getOne(opts: string | Record<string, string>, { timeout = 5000 } = {}) {
+  getOne(
+    opts: string | Record<string, string>,
+    { timeout = 5000 } = {}
+  ): Promise<Email> {
     return new Promise((resolve, reject) => {
       const filter = typeof opts === "string" ? { to: opts } : opts
 
@@ -152,7 +146,7 @@ class MailClient extends EventEmitter {
           }
         })
 
-      for (const [recipient, email] of this.emails) {
+      for (const [recipient, email] of Array.from(this.emails)) {
         if (passesFilters(email)) {
           this.emails.delete(recipient)
           return resolve(email)

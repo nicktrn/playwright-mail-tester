@@ -68,7 +68,7 @@ export class MailServer {
       const buffer = Buffer.concat(chunks)
       const envelope = parseEnvelope(session.envelope)
       envelope.to.forEach((to) => {
-        const subscribers = [...this.wsServer.clients].filter(
+        const subscribers = Array.from(this.wsServer.clients).filter(
           (client: NamespacedWebSocket) => {
             if (!(typeof client.namespace === "string")) return
             return this.isSubscribed(client.namespace, client.namespaceMode, to)

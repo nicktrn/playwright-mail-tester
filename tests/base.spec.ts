@@ -40,11 +40,11 @@ for (let i = 1; i <= loops; i++) {
 
     // string param - recipient address only
     await sendMail({ to })
-    await emails.getOne(to)
+    await emails.waitForOne(to)
 
     // object param - with custom prop filter
     await sendMail({ to })
-    await emails.getOne({ to, foo: "bar" })
+    await emails.waitForOne({ to, foo: "bar" })
   })
 
   test(`waitForMany-${i}`, async ({ emails }, testInfo) => {
