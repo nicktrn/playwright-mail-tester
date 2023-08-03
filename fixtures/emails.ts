@@ -34,9 +34,8 @@ export class EmailsFixture {
   private namespaceMode: NamespaceMode
   private page: Page
 
-  connect = async () => this.mailClient.start()
-
-  disconnect = async () => this.mailClient.stop()
+  start = () => this.mailClient.start()
+  stop = () => this.mailClient.stop()
 
   generateAddress = () =>
     generateNamespacedEmailAddress(this.namespaceMode).toLowerCase()

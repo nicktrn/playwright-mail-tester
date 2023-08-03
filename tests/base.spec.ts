@@ -8,9 +8,9 @@ export const test = base.extend<{
 }>({
   emails: async ({ page }, use) => {
     const emails = createEmailsFixture(page)
-    await emails.connect()
+    await emails.start()
     await use(emails)
-    await emails.disconnect()
+    await emails.stop()
   },
 })
 

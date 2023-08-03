@@ -105,24 +105,28 @@ class MailClient extends EventEmitter {
   }
 
   start() {
-    this.ws = new WebSocket(
-      `ws://localhost:${WS_SERVER_PORT}/?id=${this.id}&ns=${this.namespace}&mode=${this.mode}`
-    )
+    return new Promise((res) => {
+      this.ws = new WebSocket(
+        `ws://localhost:${WS_SERVER_PORT}/?id=${this.id}&ns=${this.namespace}&mode=${this.mode}`
+      )
 
-    this.ws.on("error", console.error)
+      this.ws.once("open", () => res("mail client started"))
 
-    this.ws.on("message", async (buffer) => {
-      const parsed = await simpleParser(buffer.toString())
-      const email = createEmail(parsed)
-      const { html, ...rest } = email
-      this.debug("you've got mail:", rest.to[0])
-      email.to.forEach((recipient) => {
-        if (this.emails.has(recipient)) {
-          this.debug("WARN: overwriting email for", recipient)
-        }
-        this.emails.set(recipient, email)
-        this.emit(recipient, email)
-        this.emit(this.gotMail, email)
+      this.ws.on("error", console.error)
+
+      this.ws.on("message", async (buffer) => {
+        const parsed = await simpleParser(buffer.toString())
+        const email = createEmail(parsed)
+        const { html, ...rest } = email
+        this.debug("you've got mail:", rest.to[0])
+        email.to.forEach((recipient) => {
+          if (this.emails.has(recipient)) {
+            this.debug("WARN: overwriting email for", recipient)
+          }
+          this.emails.set(recipient, email)
+          this.emit(recipient, email)
+          this.emit(this.gotMail, email)
+        })
       })
     })
   }
